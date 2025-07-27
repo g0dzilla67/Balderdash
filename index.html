@@ -1,44 +1,45 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Jeu des Définitions</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div id="app">
-    <div id="config">
-      <h2>Configurer la partie</h2>
-      <label>Nombre de joueurs :
-        <input type="number" id="nbJoueurs" min="3" max="12" value="5">
-      </label>
-      <label>Temps par joueur (sec) :
-        <input type="number" id="tempsParJoueur" min="10" max="120" value="30">
-      </label>
-      <button onclick="demarrerJeu()">Lancer le jeu</button>
-    </div>
+  <div id="config">
+    <h1>Jeu des Définitions</h1>
+    <label>Nombre de joueurs :
+      <input id="nbJoueurs" type="number" min="3" max="12" value="5"/>
+    </label>
+    <label>Temps par présentation (s) :
+      <input id="tempsSec" type="number" min="5" max="120" value="30"/>
+    </label>
+    <button id="btnStart">Démarrer</button>
+  </div>
 
-    <div id="roleDisplay" class="hidden">
-      <h2 id="nomJoueur">Joueur X, prépare-toi !</h2>
-      <button onclick="voirRole()">Voir ton rôle</button>
-      <div id="infosRole" class="hidden">
-        <p id="affichageRole"></p>
-        <button onclick="terminerJoueur()">Passer au joueur suivant</button>
-      </div>
-    </div>
-
-    <div id="compteur" class="hidden">
-      <h2 id="compteurLabel">Temps restant</h2>
-      <div id="chrono">30</div>
-    </div>
-
-    <div id="finJeu" class="hidden">
-      <h2>🎉 Présentations terminées !</h2>
-      <p>Les Maîtres votent maintenant.</p>
-      <button onclick="location.reload()">Retour au menu</button>
+  <div id="roleScreen" class="hidden">
+    <h2 id="txtJoueur"></h2>
+    <button id="btnVoir">Voir ton rôle</button>
+    <div id="roleInfo" class="hidden">
+      <p id="txtRole"></p>
+      <button id="btnSuivant">Passer au joueur suivant</button>
     </div>
   </div>
+
+  <div id="presScreen" class="hidden">
+    <h2 id="txtPres"></h2>
+    <p id="motPres"></p>
+    <div id="chrono">00</div>
+    <button id="btnLancer">Lancer le chrono</button>
+  </div>
+
+  <div id="endScreen" class="hidden">
+    <h2>Présentation terminée ! 🎉</h2>
+    <p>Les maîtres votent maintenant.</p>
+    <button id="btnRestart">Rejouer</button>
+  </div>
+
   <script src="app.js"></script>
 </body>
 </html>
