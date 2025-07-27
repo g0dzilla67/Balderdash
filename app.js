@@ -1,91 +1,111 @@
-const mots = [
+// Liste de mots + vraie définitions
+const dict = [
+  { mot: "Dénoyauter", definition: "Enlever le noyau d’un fruit." },
   { mot: "Myrmidon", definition: "Personne insignifiante, sans valeur." },
+  { mot: "Cacographie", definition: "Mauvaise écriture." },
   { mot: "Obombrer", definition: "Couvrir d’ombre, assombrir." },
-  { mot: "Cacographie", definition: "Mauvaise écriture ou écriture incorrecte." },
-  { mot: "Déréliction", definition: "État d’abandon, de solitude morale." },
   { mot: "Tautochrone", definition: "Courbe parcourue en un temps identique." }
 ];
 
-let joueurs = [];
-let joueurActuel = 0;
-let tempsRestant = 30;
-let timer;
+let joueurs = [], idxJ = 0, chronoID = null;
 
-function demarrerJeu() {
-  const nb = parseInt(document.getElementById('nbJoueurs').value);
-  const temps = parseInt(document.getElementById('tempsParJoueur').value);
-  tempsRestant = temps;
+// Éléments DOM
+const cfg  = document.getElementById("config");
+const rs   = document.getElementById("roleScreen");
+const ps   = document.getElementById("presScreen");
+const es   = document.getElementById("endScreen");
+const btnStart   = document.getElementById("btnStart");
+const btnVoir    = document.getElementById("btnVoir");
+const btnSuivant = document.getElementById("btnSuivant");
+const btnLancer  = document.getElementById("btnLancer");
+const btnRestart = document.getElementById("btnRestart");
 
-  const motChoisi = mots[Math.floor(Math.random() * mots.length)];
+// Démarrage
+btnStart.onclick = () => {
+  const n = parseInt(document.getElementById("nbJoueurs").value);
+  const t = parseInt(document.getElementById("tempsSec").value);
+  if (n < 3) return alert("Au moins 3 joueurs requi’s");
+  // Crée tableau de rôles
+  joueurs = Array.from({length:n}, (_,i) => ({id:i+1,role:""}));
+  // Désigne maître & malin
+  const m = Math.floor(Math.random()*n);
+  let f; do { f = Math.floor(Math.random()*n); } while(f===m);
+  joueurs[m].role = "maitre";
+  joueurs[f].role = "malin";
+  // Les autres = fourbes
+  joueurs.forEach(p => { if(!p.role) p.role="fourbe" });
+  // Choisit mot
+  const wd = dict[Math.floor(Math.random()*dict.length)];
+  joueurs.forEach(p => { p.mot = wd.mot; p.def = (p.role==="malin"? wd.definition : null) });
+  // Prépare 1er joueur
+  idxJ = 0;
+  cfg.classList.add("hidden");
+  showRoleScreen();
+};
 
-  const roles = Array(nb).fill('fourbe');
-  const idxMaitre = Math.floor(Math.random() * nb);
-  roles[idxMaitre] = 'maitre';
-
-  let idxMalin;
-  do {
-    idxMalin = Math.floor(Math.random() * nb);
-  } while (idxMalin === idxMaitre);
-  roles[idxMalin] = 'malin';
-
-  joueurs = roles.map((role, i) => ({
-    id: i + 1,
-    role: role,
-    mot: motChoisi.mot,
-    definition: role === 'malin' ? motChoisi.definition : null
-  }));
-
-  document.getElementById('config').classList.add('hidden');
-  afficherJoueur();
+// Affiche rôle
+function showRoleScreen(){
+  const p = joueurs[idxJ];
+  document.getElementById("txtJoueur").innerText = `Joueur ${p.id}, à toi :`;
+  document.getElementById("roleInfo").classList.add("hidden");
+  btnVoir.classList.remove("hidden");
+  rs.classList.remove("hidden");
 }
 
-function afficherJoueur() {
-  if (joueurActuel >= joueurs.length) {
-    document.getElementById('roleDisplay').classList.add('hidden');
-    document.getElementById('compteur').classList.add('hidden');
-    document.getElementById('finJeu').classList.remove('hidden');
-    return;
-  }
+// Voir rôle
+btnVoir.onclick = () => {
+  const p = joueurs[idxJ];
+  let txt = "";
+  if (p.role==="maitre")  txt = "Tu es LE MAÎTRE.\nTu ne connais ni mot ni définition.";
+  if (p.role==="malin")   txt = `Tu es l’influenceur MALIN.\nMot : ${p.mot}\nDéfinition : ${p.def}`;
+  if (p.role==="fourbe")  txt = `Tu es un influenceur FOURBE.\nMot : ${p.mot}\nInvente une définition !`;
+  document.getElementById("txtRole").innerText = txt;
+  document.getElementById("roleInfo").classList.remove("hidden");
+  btnVoir.classList.add("hidden");
+};
 
-  document.getElementById('roleDisplay').classList.remove('hidden');
-  document.getElementById('infosRole').classList.add('hidden');
-  document.getElementById('nomJoueur').textContent = `Joueur ${joueurs[joueurActuel].id}, prépare-toi !`;
-}
-
-function voirRole() {
-  const joueur = joueurs[joueurActuel];
-  let texte = "";
-
-  if (joueur.role === "maitre") {
-    texte = "Tu es le MAÎTRE.\nTu ne vois ni mot ni définition.";
-  } else if (joueur.role === "malin") {
-    texte = `Tu es l'influenceur malin !\nMot : ${joueur.mot}\nDéfinition : ${joueur.definition}`;
+// Joueur suivant
+btnSuivant.onclick = () => {
+  idxJ++;
+  rs.classList.add("hidden");
+  if (idxJ < joueurs.length) {
+    showRoleScreen();
   } else {
-    texte = `Tu es un influenceur fourbe !\nMot : ${joueur.mot}\nInvente une définition convaincante.`;
+    idxJ = 0;
+    rs.classList.add("hidden");
+    startPresentation();
   }
+};
 
-  document.getElementById('affichageRole').textContent = texte;
-  document.getElementById('infosRole').classList.remove('hidden');
+// Phase présentation
+function startPresentation(){
+  ps.classList.remove("hidden");
+  document.getElementById("txtPres").innerText = `Joueur ${joueurs[idxJ].id}, présente !`;
+  document.getElementById("motPres").innerText = `Mot : ${joueurs[idxJ].mot}`;
+  document.getElementById("chrono").innerText = document.getElementById("tempsSec").value;
 }
 
-function terminerJoueur() {
-  document.getElementById('roleDisplay').classList.add('hidden');
-  lancerChrono();
-}
-
-function lancerChrono() {
-  document.getElementById('compteur').classList.remove('hidden');
-  document.getElementById('chrono').textContent = tempsRestant;
-  let temps = tempsRestant;
-
-  timer = setInterval(() => {
-    temps--;
-    document.getElementById('chrono').textContent = temps;
-    if (temps <= 0) {
-      clearInterval(timer);
-      document.getElementById('compteur').classList.add('hidden');
-      joueurActuel++;
-      afficherJoueur();
+// Lance le chrono
+btnLancer.onclick = () => {
+  let t = parseInt(document.getElementById("tempsSec").value);
+  btnLancer.disabled = true;
+  document.getElementById("chrono").innerText = t;
+  chronoID = setInterval(()=>{
+    t--;
+    document.getElementById("chrono").innerText = t;
+    if (t<=0) {
+      clearInterval(chronoID);
+      idxJ++;
+      if (idxJ<joueurs.length) {
+        btnLancer.disabled = false;
+        startPresentation();
+      } else {
+        ps.classList.add("hidden");
+        es.classList.remove("hidden");
+      }
     }
-  }, 1000);
-}
+  },1000);
+};
+
+// Rejouer
+btnRestart.onclick = () => location.reload();
