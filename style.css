@@ -1,46 +1,34 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  margin: 0;
-  padding: 0;
-  background-color: #121212;
-  color: #f0f0f0;
+  background: #121212; color: #eee;
   font-family: sans-serif;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  text-align: center;
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh; text-align: center;
+  padding: 1rem;
 }
-
-#app {
-  max-width: 400px;
-  width: 100%;
-  padding: 20px;
+.hidden { display: none; }
+#config, #roleScreen, #presScreen, #endScreen {
+  width: 100%; max-width: 400px;
+  background: #1e1e1e; padding: 1.5rem; border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
-
-input, button {
-  width: 100%;
-  margin: 10px 0;
-  padding: 10px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: none;
+h1, h2 { margin-bottom: 1rem; }
+label {
+  display: block; margin: .75rem 0;
+  font-size: 1rem;
 }
-
+input {
+  width: 100%; padding: .5rem; margin-top: .25rem;
+  font-size: 1rem; border-radius: 6px; border: none;
+  background: #2a2a2a; color: #fff;
+}
 button {
-  background-color: #1e88e5;
-  color: white;
-  cursor: pointer;
+  margin-top: 1rem; width: 100%; padding: .75rem;
+  font-size: 1rem; border: none; border-radius: 6px;
+  background: #3c82f6; color: #fff; cursor: pointer;
+  transition: background .2s;
 }
-
-button:hover {
-  background-color: #1565c0;
-}
-
-.hidden {
-  display: none;
-}
-
+button:hover { background: #2563eb; }
 #chrono {
-  font-size: 48px;
-  margin: 20px 0;
+  font-size: 3rem; margin: 1rem 0; color: #f55;
 }
