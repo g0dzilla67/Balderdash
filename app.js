@@ -1,114 +1,91 @@
-const screen = document.getElementById('screen');
-
-let config = {
-  nbJoueurs: 5,
-  nbMaitres: 2,
-};
-
-let etape = 0;
-let roles = [];
-let mots = [
-  "psittacisme", "escarcelle", "rodomontade", "hypogée", "mirliflore",
-  "outrenoir", "dénoyauter", "carabistouille", "chafouin", "palimpseste"
+const mots = [
+  { mot: "Myrmidon", definition: "Personne insignifiante, sans valeur." },
+  { mot: "Obombrer", definition: "Couvrir d’ombre, assombrir." },
+  { mot: "Cacographie", definition: "Mauvaise écriture ou écriture incorrecte." },
+  { mot: "Déréliction", definition: "État d’abandon, de solitude morale." },
+  { mot: "Tautochrone", definition: "Courbe parcourue en un temps identique." }
 ];
-let motChoisi = "";
-let vraiMaitreIndex = -1;
 
-function montrerAccueil() {
-  screen.innerHTML = `
-    <div class="card">
-      <h2>Défi Définitions</h2>
-      <label>Nombre de joueurs : <input type="number" id="nbJ" min="3" value="${config.nbJoueurs}" /></label>
-      <label>Nombre de maîtres : <input type="number" id="nbM" min="1" value="${config.nbMaitres}" /></label>
-      <button onclick="demarrerPartie()">Commencer</button>
-    </div>
-  `;
+let joueurs = [];
+let joueurActuel = 0;
+let tempsRestant = 30;
+let timer;
+
+function demarrerJeu() {
+  const nb = parseInt(document.getElementById('nbJoueurs').value);
+  const temps = parseInt(document.getElementById('tempsParJoueur').value);
+  tempsRestant = temps;
+
+  const motChoisi = mots[Math.floor(Math.random() * mots.length)];
+
+  const roles = Array(nb).fill('fourbe');
+  const idxMaitre = Math.floor(Math.random() * nb);
+  roles[idxMaitre] = 'maitre';
+
+  let idxMalin;
+  do {
+    idxMalin = Math.floor(Math.random() * nb);
+  } while (idxMalin === idxMaitre);
+  roles[idxMalin] = 'malin';
+
+  joueurs = roles.map((role, i) => ({
+    id: i + 1,
+    role: role,
+    mot: motChoisi.mot,
+    definition: role === 'malin' ? motChoisi.definition : null
+  }));
+
+  document.getElementById('config').classList.add('hidden');
+  afficherJoueur();
 }
 
-function demarrerPartie() {
-  config.nbJoueurs = parseInt(document.getElementById('nbJ').value);
-  config.nbMaitres = parseInt(document.getElementById('nbM').value);
-
-  // Créer tableau de rôles
-  roles = Array(config.nbJoueurs).fill("joueur");
-  for (let i = 0; i < config.nbMaitres; i++) {
-    roles[i] = "maitre";
+function afficherJoueur() {
+  if (joueurActuel >= joueurs.length) {
+    document.getElementById('roleDisplay').classList.add('hidden');
+    document.getElementById('compteur').classList.add('hidden');
+    document.getElementById('finJeu').classList.remove('hidden');
+    return;
   }
 
-  // Mélanger rôles
-  roles = roles.sort(() => Math.random() - 0.5);
-
-  // Choisir un mot et le maître qui connaît la vraie définition
-  motChoisi = mots[Math.floor(Math.random() * mots.length)];
-  let maitresIndexes = roles
-    .map((r, i) => (r === "maitre" ? i : null))
-    .filter(i => i !== null);
-
-  vraiMaitreIndex = maitresIndexes[Math.floor(Math.random() * maitresIndexes.length)];
-
-  etape = 0;
-  montrerTransition();
+  document.getElementById('roleDisplay').classList.remove('hidden');
+  document.getElementById('infosRole').classList.add('hidden');
+  document.getElementById('nomJoueur').textContent = `Joueur ${joueurs[joueurActuel].id}, prépare-toi !`;
 }
 
-function montrerTransition() {
-  if (etape >= config.nbJoueurs) return montrerVote();
+function voirRole() {
+  const joueur = joueurs[joueurActuel];
+  let texte = "";
 
-  screen.innerHTML = `
-    <div class="card">
-      <h2>Joueur ${etape + 1}</h2>
-      <p>Passe le téléphone.</p>
-      <button onclick="montrerRole(${etape})">Voir ton rôle</button>
-    </div>
-  `;
-}
-
-function montrerRole(index) {
-  const role = roles[index];
-  let contenu = "";
-
-  if (role === "joueur") {
-    contenu = `
-      <p>Tu es <strong>joueur</strong>.</p>
-      <p>Mot : <strong>${motChoisi}</strong></p>
-      <p>Prépare-toi à l'expliquer comme si tu savais !</p>
-    `;
-  } else if (index === vraiMaitreIndex) {
-    contenu = `
-      <p>Tu es <strong>le maître connaisseur</strong>.</p>
-      <p>Mot : <strong>${motChoisi}</strong></p>
-      <p>Tu es le seul à connaître la vraie définition.</p>
-    `;
+  if (joueur.role === "maitre") {
+    texte = "Tu es le MAÎTRE.\nTu ne vois ni mot ni définition.";
+  } else if (joueur.role === "malin") {
+    texte = `Tu es l'influenceur malin !\nMot : ${joueur.mot}\nDéfinition : ${joueur.definition}`;
   } else {
-    contenu = `
-      <p>Tu es <strong>maître imposteur</strong>.</p>
-      <p>Mot : <strong>${motChoisi}</strong></p>
-      <p>Tu dois <em>inventer</em> une définition crédible.</p>
-    `;
+    texte = `Tu es un influenceur fourbe !\nMot : ${joueur.mot}\nInvente une définition convaincante.`;
   }
 
-  screen.innerHTML = `
-    <div class="card">
-      <h2>Joueur ${index + 1}</h2>
-      ${contenu}
-      <button onclick="suivant()">OK</button>
-    </div>
-  `;
+  document.getElementById('affichageRole').textContent = texte;
+  document.getElementById('infosRole').classList.remove('hidden');
 }
 
-function suivant() {
-  etape++;
-  montrerTransition();
+function terminerJoueur() {
+  document.getElementById('roleDisplay').classList.add('hidden');
+  lancerChrono();
 }
 
-function montrerVote() {
-  screen.innerHTML = `
-    <div class="card">
-      <h2>Présentation terminée !</h2>
-      <p>Maintenant, chaque joueur doit <strong>présenter sa définition à voix haute</strong>.</p>
-      <p>Les joueurs votent ensuite pour celui qui dit la vérité !</p>
-      <button onclick="montrerAccueil()">Rejouer</button>
-    </div>
-  `;
-}
+function lancerChrono() {
+  document.getElementById('compteur').classList.remove('hidden');
+  document.getElementById('chrono').textContent = tempsRestant;
+  let temps = tempsRestant;
 
-montrerAccueil();
+  timer = setInterval(() => {
+    temps--;
+    document.getElementById('chrono').textContent = temps;
+    if (temps <= 0) {
+      clearInterval(timer);
+      document.getElementById('compteur').classList.add('hidden');
+      joueurActuel++;
+      afficherJoueur();
+    }
+  }, 1000);
+}
